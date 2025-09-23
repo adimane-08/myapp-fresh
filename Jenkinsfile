@@ -22,21 +22,19 @@ pipeline {
         }
 
         stage('Push to DockerHub') {
-            steps {
-                script {
-                    dstage('Push to DockerHub') {
-                        steps {
-                            withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                                docker context use default
-                                bat 'docker login -u %DOCKER_USER% -p %DOCKER_PASS%'
-                                bat 'docker tag myapp:v1 adimane0801/myapp:v1'
-                                bat 'docker push adimane0801/myapp:v1'
-                }
-            }
+         steps {
+           withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+            // Run Windows batch commands
+             bat """
+                docker context use default
+                echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+                docker tag myapp:v1 adimane0801/myapp:v1
+                docker push adimane0801/myapp:v1
+            """
         }
-                }
-            }
-        }
+    }
+}
+
         stage('Test K8s') {
     steps {
         withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
