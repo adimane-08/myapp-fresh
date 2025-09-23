@@ -24,9 +24,16 @@ pipeline {
         stage('Push to DockerHub') {
             steps {
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub') {
-                        docker.image("${DOCKER_IMAGE}:v1").push()
-                    }
+                    dstage('Push to DockerHub') {
+                        steps {
+                            withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                                docker context use default
+                                bat 'docker login -u %DOCKER_USER% -p %DOCKER_PASS%'
+                                bat 'docker tag myapp:v1 adimane0801/myapp:v1'
+                                bat 'docker push adimane0801/myapp:v1'
+                }
+            }
+        }
                 }
             }
         }
