@@ -35,13 +35,7 @@ pipeline {
     }
 }
 
-        stage('Test K8s') {
-    steps {
-        withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
-            bat 'kubectl get nodes'
-        }
-    }
-}
+  
 
      stage('Deploy to Minikube') {
          steps {
