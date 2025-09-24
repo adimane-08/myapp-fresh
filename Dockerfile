@@ -1,12 +1,14 @@
+# Use OpenJDK image
 FROM openjdk:17-jdk
 
+# Set working directory
 WORKDIR /app
 
-# Correctly copy the Java file
+# Copy the Java file from src/ to /app
 COPY src/App.java .
 
-# Compile
+# Compile Java program
 RUN javac App.java
 
-# Run the app
+# Run the Java program
 CMD ["java", "App"]
