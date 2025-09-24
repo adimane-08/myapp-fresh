@@ -33,7 +33,16 @@ pipeline {
             """
         }
     }
+
+        
+    stage('Test K8s') {
+      steps {
+        withCredentials([file(credentialsId: 'minikube-kubeconfig', variable: 'KUBECONFIG')]) {
+           bat 'kubectl get nodes'
+        }
+    }
 }
+
         
     stage('Run maven') {
       steps {
