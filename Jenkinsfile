@@ -34,7 +34,7 @@ pipeline {
         }
     }
 }
-        stages {
+        
     stage('Run maven') {
       steps {
         container('maven') {
@@ -42,7 +42,7 @@ pipeline {
         }
       }
     }
-  }
+  
 
   
 
