@@ -7,6 +7,12 @@ pipeline {
     }
 
     stages {
+        stage('Clean Workspace') {
+            steps {
+                // Deletes old files in Jenkins workspace
+                cleanWs()
+            }
+        }
         stage('Clone Repo') {
             steps {
                 checkout scm
