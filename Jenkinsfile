@@ -28,21 +28,38 @@ pipeline {
         }
 
         stage('Push to DockerHub') {
-            steps {
-                script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub') {
-                        docker.image("${DOCKER_IMAGE}:v1").push()
-                    }
-                }
-            }
+         steps {
+           withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+            // Run Windows batch commands
+             bat """
+                docker context use default
+                echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+                docker tag myapp:v1 adimane0801/myapp:v1
+                docker push adimane0801/myapp:v1
+            """
         }
-
-        stage('Deploy to Minikube') {
-            steps {
-                script {
-                    bat 'kubectl apply -f k8s-deployment.yaml --validate=false'
-                }
+    }
+        }
+                
+        stage('Test K8s') {
+          steps {
+            withCredentials([file(credentialsId: 'minikube-kubeconfig', variable: 'KUBECONFIG')]) {
+               bat 'kubectl get nodes'
             }
         }
     }
+      
+
+  
+
+         stage('Deploy to Minikube') {
+          steps {
+            withCredentials([file(credentialsId: 'minikube-kubeconfig', variable: 'KUBECONFIG')]) {
+              bat 'kubectl apply -f k8s-deployment.yaml --validate=false'
+    }
+  }
 }
+
+    }
+}
+    
