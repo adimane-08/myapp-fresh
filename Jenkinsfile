@@ -47,14 +47,13 @@ pipeline {
   
 
          stage('Deploy to Minikube') {
-             steps {
-                 script {
-                       // withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
-                            bat 'kubectl apply -f k8s-deployment.yaml --validate=false'
-                }
-            }
-       // }
+          steps {
+            withCredentials([file(credentialsId: 'minikube-kubeconfig', variable: 'KUBECONFIG')]) {
+              bat 'kubectl apply -f k8s-deployment.yaml --validate=false'
     }
+  }
+}
+
     }
 }
     
