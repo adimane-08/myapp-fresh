@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'adimane0801/myapp:v1'
+        DOCKER_IMAGE = 'adimane0801/myapp'
         KUBECONFIG = credentials('kubeconfig')
     }
 
