@@ -1,11 +1,12 @@
-# Use a Java runtime image
-FROM openjdk:17-jdk-alpine
+FROM openjdk:17-jdk
 
-# Set working directory
 WORKDIR /app
 
-# Copy compiled class files
-COPY target/ . 
+# Correctly copy the Java file
+COPY src/App.java .
 
-# Command to run the app
+# Compile
+RUN javac App.java
+
+# Run the app
 CMD ["java", "App"]
