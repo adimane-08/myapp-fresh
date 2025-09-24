@@ -1,5 +1,11 @@
+# Use a Java runtime image
 FROM openjdk:17-jdk-alpine
+
+# Set working directory
 WORKDIR /app
-COPY target/myapp.jar .
-EXPOSE 80
-CMD ["java", "-jar", "myapp.jar"]
+
+# Copy compiled class files
+COPY target/ . 
+
+# Command to run the app
+CMD ["java", "App"]
