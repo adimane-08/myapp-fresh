@@ -42,15 +42,6 @@ pipeline {
             }
         }
     }
-
-        
-        stage('Run maven') {
-          steps {
-            container('maven') {
-              bat 'mvn -version'
-            }
-          }
-        }
       
 
   
