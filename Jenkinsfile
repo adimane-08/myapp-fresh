@@ -33,38 +33,37 @@ pipeline {
             """
         }
     }
-
-        
-    stage('Test K8s') {
-      steps {
-        withCredentials([file(credentialsId: 'minikube-kubeconfig', variable: 'KUBECONFIG')]) {
-           bat 'kubectl get nodes'
-        }
-    }
-}
-
-        
-    stage('Run maven') {
-      steps {
-        container('maven') {
-          sh 'mvn -version'
-        }
-      }
-    }
-  
-
-  
-
-     stage('Deploy to Minikube') {
-         steps {
-             script {
-                   // withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
-                        bat 'kubectl apply -f k8s-deployment.yaml --validate=false'
+                
+        stage('Test K8s') {
+          steps {
+            withCredentials([file(credentialsId: 'minikube-kubeconfig', variable: 'KUBECONFIG')]) {
+               bat 'kubectl get nodes'
             }
         }
-   // }
-}
-
     }
-}
-}
+
+        
+        stage('Run maven') {
+          steps {
+            container('maven') {
+              bat 'mvn -version'
+            }
+          }
+        }
+      
+
+  
+
+         stage('Deploy to Minikube') {
+             steps {
+                 script {
+                       // withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+                            bat 'kubectl apply -f k8s-deployment.yaml --validate=false'
+                }
+            }
+       // }
+    }
+    
+        }
+    }
+    }
