@@ -33,6 +33,7 @@ pipeline {
             """
         }
     }
+        }
                 
         stage('Test K8s') {
           steps {
@@ -63,6 +64,8 @@ pipeline {
             }
        // }
     }
+    }
+}
     
         }
     }
