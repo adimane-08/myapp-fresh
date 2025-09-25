@@ -46,15 +46,19 @@ pipeline {
 }
 
                 
-        stage('Deploy to Kubernetes') {
-         steps {
-          script {
-            bat """
-                kubectl set image deployment/myapp-deployment myapp=adimane0801/myapp:%BUILD_NUMBER%
-            """
+       stage('Deploy to Kubernetes') {
+        steps {
+         withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+            script {
+                bat """
+                    kubectl config view
+                    kubectl set image deployment/myapp-deployment myapp=adimane0801/myapp:%BUILD_NUMBER%
+                """
+            }
         }
     }
 }
+
 
       
 
