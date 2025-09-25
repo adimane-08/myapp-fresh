@@ -1,9 +1,14 @@
 pipeline {
     agent any
+    environment {
+      
+
+
 
     environment {
         DOCKER_IMAGE = 'adimane0801/myapp'
-        KUBECONFIG = credentials('kubeconfig')
+        KUBECONFIG = 'C:\\Users\\Aditya\\.kube\\config'
+       // KUBECONFIG = credentials('kubeconfig')
     }
 
     stages {
