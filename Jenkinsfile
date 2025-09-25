@@ -53,7 +53,7 @@ pipeline {
                 
        stage('Update Deployment') {
             steps {
-                bat 'kubectl set image deployment/myapp-deployment myapp=adimane0801/myapp:%BUILD_NUMBER%"'
+                bat "kubectl set image deployment/myapp-deployment myapp=adimane0801/myapp:%BUILD_NUMBER%"
             }
         }
 
