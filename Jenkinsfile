@@ -28,26 +28,31 @@ pipeline {
         }
 
         stage('Push to DockerHub') {
-         steps {
-           withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-            // Run Windows batch commands
-             bat """
+        steps {
+         withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+            bat """
                 docker context use default
                 echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
-                docker tag myapp:v1 adimane0801/myapp:v1
-                docker push adimane0801/myapp:v1
+                docker tag myapp:%BUILD_NUMBER% adimane0801/myapp:%BUILD_NUMBER%
+                docker push adimane0801/myapp:%BUILD_NUMBER%
+                docker tag myapp:%BUILD_NUMBER% adimane0801/myapp:latest
+                docker push adimane0801/myapp:latest
             """
         }
     }
-        }
+}
+
                 
-        stage('Test K8s') {
-          steps {
-            withCredentials([file(credentialsId: 'minikube-kubeconfig', variable: 'KUBECONFIG')]) {
-               bat 'kubectl get nodes'
-            }
+        stage('Deploy to Kubernetes') {
+         steps {
+          script {
+            bat """
+                kubectl set image deployment/myapp-deployment myapp=adimane0801/myapp:%BUILD_NUMBER%
+            """
         }
     }
+}
+
       
 
   
