@@ -20,12 +20,15 @@ pipeline {
         }
 
         stage('Build Docker Image') {
-            steps {
-                script {
-                    bat 'docker build -t %DOCKER_IMAGE%:v1 .'
-                }
-            }
+         steps {
+          script {
+            bat """
+                docker build -t myapp:%BUILD_NUMBER% .
+            """
         }
+    }
+}
+
 
         stage('Push to DockerHub') {
         steps {
