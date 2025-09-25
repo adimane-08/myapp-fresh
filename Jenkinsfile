@@ -43,8 +43,8 @@ pipeline {
                 echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
                 docker tag myapp:%BUILD_NUMBER% adimane0801/myapp:%BUILD_NUMBER%
                 docker push adimane0801/myapp:%BUILD_NUMBER%
-               // docker tag myapp:%BUILD_NUMBER% adimane0801/myapp:latest
-               // docker push adimane0801/myapp:latest
+             :: docker tag myapp:%BUILD_NUMBER% adimane0801/myapp:latest
+            ::  docker push adimane0801/myapp:latest
             """
         }
     }
