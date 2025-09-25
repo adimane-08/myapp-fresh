@@ -28,7 +28,7 @@ pipeline {
          steps {
           script {
             bat """
-                docker build -t myapp:%BUILD_NUMBER% .
+                docker build --no-cache -t myapp:%BUILD_NUMBER% .
             """
         }
     }
