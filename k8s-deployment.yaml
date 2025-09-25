@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: myapp
-          image: adimane0801/myapp:v2
+          image: adimane0801/myapp:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8080  # Make sure your Java app listens on 8080
