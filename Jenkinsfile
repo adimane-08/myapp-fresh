@@ -1,10 +1,6 @@
 pipeline {
     agent any
  
-      
-
-
-
     environment {
         DOCKER_IMAGE = 'adimane0801/myapp'
         KUBECONFIG = 'C:\\Users\\Aditya\\.kube\\config'
@@ -34,9 +30,6 @@ pipeline {
         '''
       }
     }
-
-
-
         stage('Push to DockerHub') {
         steps {
          withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
@@ -52,7 +45,7 @@ pipeline {
         }
     }
 }
-                 stage('Deploy to Minikube') {
+        stage('Deploy to Minikube') {
           steps {
             withCredentials([file(credentialsId: 'minikube-kubeconfig', variable: 'KUBECONFIG')]) {
               bat 'kubectl apply -f k8s-deployment.yaml --validate=false'
@@ -62,13 +55,20 @@ pipeline {
 }
 
                 
-       stage('Update Deployment') {
+        stage('Update Deployment') {
             steps {
                 bat "kubectl set image deployment/myapp-deployment myapp=adimane0801/myapp:%BUILD_NUMBER%"
                 bat "kubectl rollout restart deployment myapp-deployment"
                 bat "kubectl rollout status deployment myapp-deployment"
             }
         }
+        stage('Apply HPA') {
+         steps {
+          bat 'kubectl apply -f hpa.yaml'
+      }
+    }
+
+
     }
 
     }

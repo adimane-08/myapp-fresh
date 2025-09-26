@@ -21,6 +21,11 @@ spec:
           ports:
             - containerPort: 8080  # Make sure your Java app listens on 8080
             # ✅ Add these probes
+          resources:
+          requests:
+            cpu: "100m"
+          limits:
+            cpu: "500m"
           readinessProbe:
             httpGet:
               path: /
