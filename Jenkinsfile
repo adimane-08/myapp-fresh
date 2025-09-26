@@ -26,13 +26,15 @@ pipeline {
 
         stage('Build Docker Image') {
          steps {
-          script {
-            bat """
-                docker build --no-cache -t myapp:%BUILD_NUMBER% .
-            """
-        }
+          bat '''
+          @echo off
+          call minikube -p minikube docker-env > docker_env.bat
+          call docker_env.bat
+          docker build --no-cache -t adimane0801/myapp:%BUILD_NUMBER% .
+        '''
+      }
     }
-}
+
 
 
         stage('Push to DockerHub') {
@@ -50,6 +52,14 @@ pipeline {
         }
     }
 }
+                 stage('Deploy to Minikube') {
+          steps {
+            withCredentials([file(credentialsId: 'minikube-kubeconfig', variable: 'KUBECONFIG')]) {
+              bat 'kubectl apply -f k8s-deployment.yaml --validate=false'
+              // to verify the deployment was successful
+    }
+  }
+}
 
                 
        stage('Update Deployment') {
@@ -59,20 +69,6 @@ pipeline {
                 bat "kubectl rollout status deployment myapp-deployment"
             }
         }
-
-
-      
-
-  
-
-         stage('Deploy to Minikube') {
-          steps {
-            withCredentials([file(credentialsId: 'minikube-kubeconfig', variable: 'KUBECONFIG')]) {
-              bat 'kubectl apply -f k8s-deployment.yaml --validate=false'
-              // to verify the deployment was successful
-    }
-  }
-}
     }
 
     }
