@@ -62,15 +62,19 @@ pipeline {
                 bat "kubectl rollout status deployment myapp-deployment"
             }
         }
-        stage('Apply HPA') {
+        stage('Apply HPA, service and ingress') {
          steps {
           bat 'kubectl apply -f hpa.yaml'
+          bat 'kubectl apply -f service.yaml'
+          bat 'kubectl apply -f ingress.yaml'
+         }
+
       }
     }
 
 
     }
 
-    }
+    
 
     
