@@ -3,11 +3,9 @@ pipeline {
 
     environment {
         KUBECONFIG = 'C:\\Users\\Aditya\\.kube\\config'
-        // Base64 TLS certs stored as Jenkins credentials
-        MYAPP1_TLS_CRT = credentials('myapp-tls-crt')
-        MYAPP1_TLS_KEY = credentials('myapp-tls-key')
-        MYAPP2_TLS_CRT = credentials('myapp2-tls-crt')
-        MYAPP2_TLS_KEY = credentials('myapp2-tls-key')
+        // Base64 TLS cert stored as Jenkins credentials
+        MYAPP_TLS_CRT = credentials('myapp-tls-crt')
+        MYAPP_TLS_KEY = credentials('myapp-tls-key')
     }
 
     stages {
@@ -25,8 +23,8 @@ pipeline {
                 @echo off
                 call minikube -p minikube docker-env > docker_env.bat
                 call docker_env.bat
-                docker build --no-cache -t adimane0801/myapp:%BUILD_NUMBER% ./myapp
-                docker build --no-cache -t adimane0801/myapp2:%BUILD_NUMBER% ./myapp2
+                docker build --no-cache -t adimane0801/myapp:%BUILD_NUMBER% .
+                docker build --no-cache -t adimane0801/myapp2:%BUILD_NUMBER% .
                 '''
             }
         }
@@ -46,22 +44,15 @@ pipeline {
             }
         }
 
-        stage('Create TLS Secrets') {
+        stage('Create TLS Secret') {
             steps {
                 bat """
-                REM --- App 1 TLS ---
-                echo %MYAPP1_TLS_CRT% > myapp.local.crt.base64
-                echo %MYAPP1_TLS_KEY% > myapp.local.key.base64
+                REM --- TLS for both apps ---
+                echo %MYAPP_TLS_CRT% > myapp.local.crt.base64
+                echo %MYAPP_TLS_KEY% > myapp.local.key.base64
                 certutil -decode myapp.local.crt.base64 myapp.local.crt
                 certutil -decode myapp.local.key.base64 myapp.local.key
                 kubectl create secret tls myapp-tls --cert=myapp.local.crt --key=myapp.local.key --dry-run=client -o yaml | kubectl apply -f -
-
-                REM --- App 2 TLS ---
-                echo %MYAPP2_TLS_CRT% > myapp2.local.crt.base64
-                echo %MYAPP2_TLS_KEY% > myapp2.local.key.base64
-                certutil -decode myapp2.local.crt.base64 myapp2.local.crt
-                certutil -decode myapp2.local.key.base64 myapp2.local.key
-                kubectl create secret tls myapp2-tls --cert=myapp2.local.crt --key=myapp2.local.key --dry-run=client -o yaml | kubectl apply -f -
                 """
             }
         }
@@ -69,8 +60,10 @@ pipeline {
         stage('Deploy to Minikube') {
             steps {
                 bat """
-                kubectl apply -f deployments/myapp-deployment.yaml --validate=false
-                kubectl apply -f deployments/myapp2-deployment.yaml --validate=false
+                kubectl apply -f k8s-deployment.yaml --validate=false
+                kubectl apply -f service.yaml --validate=false
+                kubectl apply -f ingress.yaml --validate=false
+                kubectl apply -f hpa.yaml --validate=false
                 """
             }
         }
@@ -87,22 +80,11 @@ pipeline {
                 """
             }
         }
-
-        stage('Apply HPA, Service, and Ingress') {
-            steps {
-                bat """
-                kubectl apply -f hpa.yaml
-                kubectl apply -f services/myapp-service.yaml
-                kubectl apply -f services/myapp2-service.yaml
-                kubectl apply -f ingress/myapps-ingress.yaml
-                """
-            }
-        }
     }
 
     post {
         success {
-            echo 'Deployment completed! Both apps should be accessible over HTTPS.'
+            echo 'Deployment completed! Both apps are accessible over HTTPS using a single TLS secret.'
         }
         failure {
             echo 'Deployment failed. Check Jenkins logs for errors.'
