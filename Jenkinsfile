@@ -3,8 +3,9 @@ pipeline {
 
     environment {
         KUBECONFIG = 'C:\\Users\\Aditya\\.kube\\config'
-        DOCKER_IMAGE_1 = 'adimane0801/myapp'
-        DOCKER_IMAGE_2 = 'adimane0801/myapp2'
+        // Base64 TLS cert stored as Jenkins credentials
+        MYAPP_TLS_CRT = credentials('myapp-tls-crt')
+        MYAPP_TLS_KEY = credentials('myapp-tls-key')
     }
 
     stages {
@@ -22,8 +23,8 @@ pipeline {
                 @echo off
                 call minikube -p minikube docker-env > docker_env.bat
                 call docker_env.bat
-                docker build --no-cache -t adimane0801/myapp:%BUILD_NUMBER% .
-                docker build --no-cache -t adimane0801/myapp2:%BUILD_NUMBER% .
+                docker build --no-cache -t adimane0801/myapp:%BUILD_NUMBER% ./myapp
+                docker build --no-cache -t adimane0801/myapp2:%BUILD_NUMBER% ./myapp2
                 '''
             }
         }
@@ -34,17 +35,33 @@ pipeline {
                     bat """
                     docker context use default
                     echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+                    docker tag adimane0801/myapp:%BUILD_NUMBER% adimane0801/myapp:%BUILD_NUMBER%
                     docker push adimane0801/myapp:%BUILD_NUMBER%
+                    docker tag adimane0801/myapp2:%BUILD_NUMBER% adimane0801/myapp2:%BUILD_NUMBER%
                     docker push adimane0801/myapp2:%BUILD_NUMBER%
                     """
                 }
             }
         }
 
+        stage('Create TLS Secret') {
+            steps {
+                bat """
+                REM --- TLS for both apps ---
+                echo %MYAPP_TLS_CRT% > myapp.local.crt.base64
+                echo %MYAPP_TLS_KEY% > myapp.local.key.base64
+                certutil -decode myapp.local.crt.base64 myapp.local.crt
+                certutil -decode myapp.local.key.base64 myapp.local.key
+                kubectl create secret tls myapp-tls --cert=myapp.local.crt --key=myapp.local.key --dry-run=client -o yaml | kubectl apply -f -
+                """
+            }
+        }
+
         stage('Deploy to Minikube') {
             steps {
                 bat """
-                kubectl apply -f k8s-deployment.yaml --validate=false
+                kubectl apply -f deployments/myapp-deployment.yaml --validate=false
+                kubectl apply -f deployments/myapp2-deployment.yaml --validate=false
                 """
             }
         }
@@ -52,12 +69,12 @@ pipeline {
         stage('Update Deployments') {
             steps {
                 bat """
-                kubectl set image deployment/myapp-deployment myapp=adimane0801/myapp:%BUILD_NUMBER%
-                kubectl set image deployment/myapp2-deployment myapp2=adimane0801/myapp2:%BUILD_NUMBER%
-                kubectl rollout restart deployment myapp-deployment
-                kubectl rollout restart deployment myapp2-deployment
-                kubectl rollout status deployment myapp-deployment
-                kubectl rollout status deployment myapp2-deployment
+                kubectl set image deployment/myapp myapp=adimane0801/myapp:%BUILD_NUMBER%
+                kubectl set image deployment/myapp2 myapp2=adimane0801/myapp2:%BUILD_NUMBER%
+                kubectl rollout restart deployment myapp
+                kubectl rollout restart deployment myapp2
+                kubectl rollout status deployment myapp
+                kubectl rollout status deployment myapp2
                 """
             }
         }
@@ -66,8 +83,9 @@ pipeline {
             steps {
                 bat """
                 kubectl apply -f hpa.yaml
-                kubectl apply -f service.yaml
-                kubectl apply -f ingress.yaml
+                kubectl apply -f services/myapp-service.yaml
+                kubectl apply -f services/myapp2-service.yaml
+                kubectl apply -f ingress/myapps-ingress.yaml
                 """
             }
         }
@@ -75,10 +93,10 @@ pipeline {
 
     post {
         success {
-            echo '✅ Deployment completed successfully! Access via https://myapp.local or https://myapp2.local'
+            echo 'Deployment completed! Both apps are accessible over HTTPS using a single TLS secret.'
         }
         failure {
-            echo '❌ Deployment failed. Check Jenkins logs for details.'
+            echo 'Deployment failed. Check Jenkins logs for errors.'
         }
     }
 }
