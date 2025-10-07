@@ -73,10 +73,10 @@ pipeline {
                 bat """
                 kubectl set image deployment/myapp myapp=adimane0801/myapp:%BUILD_NUMBER%
                 kubectl set image deployment/myapp2 myapp2=adimane0801/myapp2:%BUILD_NUMBER%
-                kubectl rollout restart deployment myapp
-                kubectl rollout restart deployment myapp2
-                kubectl rollout status deployment myapp
-                kubectl rollout status deployment myapp2
+                kubectl rollout restart deployment  myapp-deployment
+                kubectl rollout restart deployment  myapp-deployment
+                kubectl rollout status deployment  myapp-deployment
+                kubectl rollout status deployment  myapp-deployment
                 """
             }
         }
