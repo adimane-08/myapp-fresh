@@ -23,8 +23,8 @@ pipeline {
                 @echo off
                 call minikube -p minikube docker-env > docker_env.bat
                 call docker_env.bat
-                docker build --no-cache -t adimane0801/myapp:%BUILD_NUMBER% ./myapp
-                docker build --no-cache -t adimane0801/myapp2:%BUILD_NUMBER% ./myapp2
+                docker build --no-cache -t adimane0801/myapp:%BUILD_NUMBER% ./src
+                docker build --no-cache -t adimane0801/myapp2:%BUILD_NUMBER% ./src
                 '''
             }
         }
@@ -60,8 +60,10 @@ pipeline {
         stage('Deploy to Minikube') {
             steps {
                 bat """
-                kubectl apply -f deployments/myapp-deployment.yaml --validate=false
-                kubectl apply -f deployments/myapp2-deployment.yaml --validate=false
+                kubectl apply -f k8s-deployment.yaml --validate=false
+                kubectl apply -f service.yaml --validate=false
+                kubectl apply -f ingress.yaml --validate=false
+                kubectl apply -f hpa.yaml --validate=false
                 """
             }
         }
@@ -75,17 +77,6 @@ pipeline {
                 kubectl rollout restart deployment myapp2
                 kubectl rollout status deployment myapp
                 kubectl rollout status deployment myapp2
-                """
-            }
-        }
-
-        stage('Apply HPA, Service, and Ingress') {
-            steps {
-                bat """
-                kubectl apply -f hpa.yaml
-                kubectl apply -f services/myapp-service.yaml
-                kubectl apply -f services/myapp2-service.yaml
-                kubectl apply -f ingress/myapps-ingress.yaml
                 """
             }
         }
