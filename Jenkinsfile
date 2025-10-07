@@ -22,8 +22,8 @@ pipeline {
                 @echo off
                 call minikube -p minikube docker-env > docker_env.bat
                 call docker_env.bat
-                docker build --no-cache -t adimane0801/myapp:%BUILD_NUMBER% ./myapp
-                docker build --no-cache -t adimane0801/myapp2:%BUILD_NUMBER% ./myapp2
+                docker build --no-cache -t adimane0801/myapp:%BUILD_NUMBER% .
+                docker build --no-cache -t adimane0801/myapp2:%BUILD_NUMBER% .
                 '''
             }
         }
